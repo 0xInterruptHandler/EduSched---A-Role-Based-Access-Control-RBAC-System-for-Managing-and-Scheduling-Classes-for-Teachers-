@@ -5,8 +5,8 @@ const SchemaProfesor = new mongoose.Schema({
     departamento: { type: String, required: true },
     disponible: [
         {
-            dia: { type: String, enum: ['M', 'T', 'W', 'Th', 'F'] },
-            periodos: [{ period: Number, isAvailable: Boolean }]
+            dia: { type: String, enum: ['L', 'Mar', 'Mie', 'J', 'V'] },
+            periodos: [{ periodo: Number, estaDisponible: Boolean }]
         }
     ],
     HorariosAsignados: [
