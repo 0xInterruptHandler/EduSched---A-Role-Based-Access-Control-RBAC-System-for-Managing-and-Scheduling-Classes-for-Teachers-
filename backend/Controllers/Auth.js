@@ -180,7 +180,7 @@ const getProfesores = async (req, res) => {
     const teachers = await ModeloUsuario.find({ rol: 'Teacher' });
 
     if (teachers.length === 0) {
-      return res.status(200).json({ message: "No Teacher found." });
+      return res.status(200).json({ message: "No hay registros almacenados." });
     }
 
     res.status(200).json({ teachers });
@@ -192,10 +192,10 @@ const getProfesores = async (req, res) => {
  
 const getEstudiantes = async (req, res) => {
   try {
-    const students = await ModeloUsuario.find({ rol: 'Student' });
+    const students = await ModeloUsuario.find({ rol: 'Estudiante' });
 
     if (students.length === 0) {
-      return res.status(200).json({ message: "No Students found." });
+      return res.status(200).json({ message: "No hay registros almacenados." });
     }
 
     res.status(200).json({ students });
