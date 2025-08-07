@@ -6,7 +6,7 @@ import { esUsuario } from '../Middleware/VerifyToken.js'
  
 const AutenticacionRutas = express.Router()
 
-AutenticacionRutas.post('/registro',registrar)
+AutenticacionRutas.post('/registrar',registrar)
 AutenticacionRutas.post('/iniciarsesion',iniciarSesion)
 AutenticacionRutas.post('/cerrarsesion',cerrarSesion)
 AutenticacionRutas.get('/getProfesores',getProfesores)

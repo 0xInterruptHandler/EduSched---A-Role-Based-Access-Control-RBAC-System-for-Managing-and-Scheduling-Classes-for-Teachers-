@@ -5,7 +5,7 @@ const SchemaUsuario = new mongoose.Schema({
     correo: { type: String, required: true, unique: true },
     password: { type: String, required: true },  
     rol: { type: String, enum: ['Admin', 'Profesor', 'Estudiante'], required: true },  
-    idReferencia: { type: mongoose.Schema.Types.ObjectId },  
+    CodigoReferencia: { type: mongoose.Schema.Types.ObjectId },  
     FechaCreacion: { type: Date, default: Date.now }
 });
 

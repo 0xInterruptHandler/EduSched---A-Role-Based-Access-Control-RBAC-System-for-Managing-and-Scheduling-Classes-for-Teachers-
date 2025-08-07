@@ -4,6 +4,7 @@ import HOD from "../Models/admin.js";
 import Student from "../Models/estudiantes.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import ModeloEstudiante from "../Models/estudiantes.js";
 
 const registrar = async (req, res) => {
     try {
@@ -96,8 +97,8 @@ const registrar = async (req, res) => {
         CodigoReferencia = adminNuevo._id;
       } else if (rol === "Estudiante") {
  
-        const estudianteNuevo = await Student.create({
-          UsuarioCodigo: usuarioNuevo._id
+        const estudianteNuevo = await ModeloEstudiante.create({
+          EstudianteUsuarioCodigo: usuarioNuevo._id
         });
   
         CodigoReferencia = estudianteNuevo._id;
