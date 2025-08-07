@@ -41,7 +41,7 @@ const esUsuario = async(req,res,next)=>{
 
         const decodificado =jwt.verify(token,process.env.SECRETKEY)
 
-        const Usuario = await UsuarioModel.findById(decodificado.UsuarioId)
+        const Usuario = await ModeloUsuario.findById(decodificado.UsuarioCodigo)
 
         if(!Usuario){
             return res.status(401).json({success:false,message:"Accion invalida"})
