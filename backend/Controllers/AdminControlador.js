@@ -18,14 +18,14 @@ const deleteuser = async(req,res) =>{
     try {
         const UsuarioCodigo = req.params.id
 
-        const revisarAdmin = await ModeloUsuario.findById(UsuarioCodigo)
-        if(revisarAdmin.rol =='Admin'){
+        const revisarUsuario = await ModeloUsuario.findById(UsuarioCodigo)
+        if(revisarUsuario.rol =='Admin'){
             return res.status(409).json({message:"No puedes eliminar a un administrador"})
-        }else if (revisarAdmin.rol === "Profesor") {
+        }else if (revisarUsuario.rol === "Profesor") {
             await ModeloHorario.deleteMany({ ProfesorCodigo: UsuarioCodigo });
             await ModeloProfesor.findOneAndDelete({ UsuarioCodigo: UsuarioCodigo });
-        } else if (revisarAdmin.rol === "Estudiante") {
-            await Student.findOneAndDelete({ UsuarioCodigo: UsuarioCodigo});
+        } else if (revisarUsuario.rol === "Estudiante") {
+            await ModeloEstudiante.findOneAndDelete({ UsuarioCodigo: UsuarioCodigo});
         } 
 
         const usuario = await ModeloUsuario.findByIdAndDelete(UsuarioCodigo)
@@ -40,6 +40,63 @@ const deleteuser = async(req,res) =>{
     }
 }
 
-export {getUser,deleteuser}
+
+
+import Schedule from "../Models/schedule.js";
+import Teacher from "../Models/teachers.js";
+
+const assignTeacher = async (req, res) => {
+    try {
+        // parametros de la solicitud: correspondientes al documento de horario
+        const { HorarioClaseCodigo, ProfesorCodigo, dia, periodo } = req.body;
+
+        if (!HorarioClaseCodigo || !ProfesorCodigo || !dia || !periodo) {
+            return res.status(400).json({ success: false, message: "Se requieren todos los campos!" });
+        }
+
+   
+        const profesor = await ModeloProfesor.findOne({
+            UsuarioCodigo: ProfesorCodigo,
+            disponible: {
+                $elemMatch: {
+                    dia,
+                    periodos: { $elemMatch: { periodo, estaDisponible: true } },
+                },
+            },
+        });
+
+        if (!profesor) {
+            return res.status(400).json({ success: false, message: "Profesor no disponible para este slot!" });
+        }
+
+        const existeHorario = await ModeloHorario.findOne({ HorarioClaseCodigo, dia, periodo });
+        if (existeHorario) {
+            return res.status(409).json({ success: false, message: "Este horario ya ha sido asignado a otro profesor!" });
+        }
+
+        const horario = await ModeloHorario.create({ HorarioClaseCodigo, dia, periodo, ProfesorCodigo });
+
+        await ModeloProfesor.updateOne(
+            { UsuarioCodigo: ProfesorCodigo, "disponible.dia": dia },
+            {
+                $set: {
+                    "disponible.$[dayFilter].periodos.$[periodFilter].estaDisponible": false,
+                },
+            },
+            {
+                arrayFilters: [{ "dayFilter.dia": dia }, { "periodFilter.period": priodo }],
+            }
+        );
+
+        res.status(200).json({ success: true, message: "Profesor asignado correctamente!", horario });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error en el servidor." });
+        console.error(error);
+    }
+};
+
+ 
+
+export {getUser,deleteuser,assignTeacher}
 
 
