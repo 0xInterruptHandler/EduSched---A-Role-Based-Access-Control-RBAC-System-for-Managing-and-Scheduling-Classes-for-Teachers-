@@ -1,7 +1,6 @@
 import ModeloUsuario from "../Models/usuario.js";
 import Teacher from "../Models/profesores.js";
 import HOD from "../Models/admin.js";
-import Student from "../Models/estudiantes.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import ModeloEstudiante from "../Models/estudiantes.js";
