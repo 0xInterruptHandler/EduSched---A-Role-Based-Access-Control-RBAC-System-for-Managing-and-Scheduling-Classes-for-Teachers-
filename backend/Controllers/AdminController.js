@@ -18,6 +18,9 @@ const deleteuser = async (req, res) => {
         const UsuarioCodigo = req.params.id;
 
         const revisarUsuario = await ModeloUsuario.findById(UsuarioCodigo);
+        if (!revisarUsuario) {
+            return res.status(404).json({ success: false, message: "Usuario no encontrado!" });
+        }
         if (revisarUsuario.UsuarioRol === 'Admin') {
             return res.status(409).json({ message: "No puedes eliminar a un administrador" });
         } else if (revisarUsuario.UsuarioRol === "Profesor") {
@@ -29,9 +32,6 @@ const deleteuser = async (req, res) => {
 
         const usuario = await ModeloUsuario.findByIdAndDelete(UsuarioCodigo);
 
-        if (!usuario) {
-            return res.status(404).json({ success: false, message: "Usuario no encontrado!" });
-        }
         res.status(200).json({ message: "Usuario eliminado correctamente", usuario });
     } catch (error) {
         res.status(500).json({ message: "Error en el servidor!" });
@@ -136,4 +136,36 @@ const getprofesoresDisponibles = async (req, res) => {
     }
 };
 
-export { getUser, deleteuser, assignTeacher, getprofesoresDisponibles };
+const deleteSchedule = async (req, res) => {
+    try {
+        const scheduleId = req.params.id;
+
+        const schedule = await ModeloHorario.findById(scheduleId);
+        if (!schedule) {
+            return res.status(404).json({ success: false, message: "Schedule not found!" });
+        }
+
+        const { HorarioProfesorCodigo, HorarioDia, HorarioPeriodo } = schedule;
+
+        await ModeloHorario.findByIdAndDelete(scheduleId);
+
+        await ModeloProfesor.updateOne(
+            { ProfesorUsuarioCodigo: HorarioProfesorCodigo, "ProfesorDisponible.dia": HorarioDia },
+            {
+                $set: {
+                    "ProfesorDisponible.$[dayFilter].periodos.$[periodFilter].estaDisponible": true,
+                },
+            },
+            {
+                arrayFilters: [{ "dayFilter.dia": HorarioDia }, { "periodFilter.periodo": HorarioPeriodo }],
+            }
+        );
+
+        res.status(200).json({ success: true, message: "Schedule deleted and teacher's availability updated successfully!" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Internal Server Error." });
+        console.error(error);
+    }
+};
+
+export { getUser, deleteuser, assignTeacher, getprofesoresDisponibles, deleteSchedule };
