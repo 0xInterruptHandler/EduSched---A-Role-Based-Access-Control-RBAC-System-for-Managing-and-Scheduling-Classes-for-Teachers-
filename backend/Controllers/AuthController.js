@@ -1,6 +1,6 @@
 import ModeloUsuario from "../Models/usuario.js";
-import Teacher from "../Models/profesores.js";
-import HOD from "../Models/admin.js";
+import ModeloProfesor from "../Models/profesores.js";
+import ModeloAdmin from "../Models/admin.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import ModeloEstudiante from "../Models/estudiantes.js";
@@ -9,7 +9,7 @@ const registrar = async (req, res) => {
     try {
       const { nombre, correo, password, rol, departamento } = req.body;
 
-      const esExistente = await ModeloUsuario.findOne({ correo });
+      const esExistente = await ModeloUsuario.findOne({ UsuarioCorreo: correo });
       if (esExistente) {
         return res.status(401).json({ success: false, message: "Usuario Already Exists!" });
       }
@@ -17,10 +17,10 @@ const registrar = async (req, res) => {
       const hashedPassword = bcrypt.hashSync(password, 10);
   
       const usuarioNuevo = new ModeloUsuario({
-        nombre,
-        correo,
-        password: hashedPassword,
-        rol,
+        UsuarioNombre: nombre,
+        UsuarioCorreo: correo,
+        UsuarioPassword: hashedPassword,
+        UsuarioRol: rol,
       });
   
       await usuarioNuevo.save();
@@ -28,10 +28,9 @@ const registrar = async (req, res) => {
       let CodigoReferencia;
   
       if (rol === "Profesor") {
-
         const disponible = [
           {
-            day: "L",
+            dia: "L",
             periodos: [
               { periodo: 1, estaDisponible: true },
               { periodo: 2, estaDisponible: true },
@@ -40,7 +39,7 @@ const registrar = async (req, res) => {
             ],
           },
           {
-            day: "Mar",
+            dia: "Mar",
             periodos: [
               { periodo: 1, estaDisponible: true },
               { periodo: 2, estaDisponible: true },
@@ -49,7 +48,7 @@ const registrar = async (req, res) => {
             ],
           },
           {
-            day: "Mier",
+            dia: "Mie",
             periodos: [
               { periodo: 1, estaDisponible: true },
               { periodo: 2, estaDisponible: true },
@@ -58,7 +57,7 @@ const registrar = async (req, res) => {
             ],
           },
           {
-            day: "J",
+            dia: "J",
             periodos: [
               { periodo: 1, estaDisponible: true },
               { periodo: 2, estaDisponible: true },
@@ -67,7 +66,7 @@ const registrar = async (req, res) => {
             ],
           },
           {
-            day: "V",
+            dia: "V",
             periodos: [
               { periodo: 1, estaDisponible: true },
               { periodo: 2, estaDisponible: true },
@@ -77,25 +76,22 @@ const registrar = async (req, res) => {
           }
         ];
   
- 
-        const profesorNuevo = await Teacher.create({
-          UsuarioCodigo: usuarioNuevo._id,
-          departamento,
-          disponible,
+        const profesorNuevo = await ModeloProfesor.create({
+          ProfesorUsuarioCodigo: usuarioNuevo._id,
+          ProfesorDepartamento: departamento,
+          ProfesorDisponible: disponible,
         });
   
         CodigoReferencia = profesorNuevo._id;
-      }else if (rol === "Admin") {
- 
-        const adminNuevo = await HOD.create({
-          UsuarioCodigo: usuarioNuevo._id,
-          departamento,
-          clasesAdministradas: [], 
+      } else if (rol === "Admin") {
+        const adminNuevo = await ModeloAdmin.create({
+          AdminUsuarioCodigo: usuarioNuevo._id,
+          AdminDepartamento: departamento,
+          AdminClasesAdministradas: [], 
         });
   
         CodigoReferencia = adminNuevo._id;
       } else if (rol === "Estudiante") {
- 
         const estudianteNuevo = await ModeloEstudiante.create({
           EstudianteUsuarioCodigo: usuarioNuevo._id
         });
@@ -105,8 +101,7 @@ const registrar = async (req, res) => {
         return res.status(400).json({ success: false, message: "Rol especificado invalido" });
       }
    
-
-      usuarioNuevo.CodigoReferencia = CodigoReferencia;
+      usuarioNuevo.UsuarioCodigoReferencia = CodigoReferencia;
       await usuarioNuevo.save();
   
       res.status(200).json({ message: "Usuario registrado correctamente", Usuario: usuarioNuevo });
@@ -120,21 +115,20 @@ const iniciarSesion = async (req, res) => {
   try {
     const { correo, password } = req.body;
 
-    const Usuario = await ModeloUsuario.findOne({ correo });
+    const Usuario = await ModeloUsuario.findOne({ UsuarioCorreo: correo });
     if (!Usuario) {
       return res.status(404).json({ success: false, message: "Usuario Does Not Exist" });
     }
 
-    const esContrasenaValida = bcrypt.compareSync(password, Usuario.password);
+    const esContrasenaValida = bcrypt.compareSync(password, Usuario.UsuarioPassword);
     if (!esContrasenaValida) {
       return res.status(401).json({ success: false, message: "Contrasena incorrecta" });
     }
 
-    const token = jwt.sign({ UsuarioCodigo: Usuario._id, rol: Usuario.rol }, process.env.SECRETKEY, {
+    const token = jwt.sign({ UsuarioCodigo: Usuario._id, rol: Usuario.UsuarioRol }, process.env.SECRETKEY, {
       expiresIn: "1h",
     });
 
- 
     res.cookie("token", token, {
       httpOnly: true,
       secure: true, 
@@ -151,7 +145,6 @@ const iniciarSesion = async (req, res) => {
 
 const cerrarSesion = async (req, res) => {
   try {
-  
     res.clearCookie("token");
     res.status(200).json({ success: true, message: "Cierre de sesion completado" });
   } catch (error) {
@@ -159,7 +152,6 @@ const cerrarSesion = async (req, res) => {
     console.error(error);
   }
 };
-
 
 const revisarUsuario =async(req,res)=>{
   try {
@@ -174,10 +166,9 @@ const revisarUsuario =async(req,res)=>{
   }
 }
 
- 
 const getProfesores = async (req, res) => {
   try {
-    const teachers = await ModeloUsuario.find({ rol: 'Teacher' });
+    const teachers = await ModeloUsuario.find({ UsuarioRol: 'Profesor' });
 
     if (teachers.length === 0) {
       return res.status(200).json({ message: "No hay registros almacenados." });
@@ -192,7 +183,7 @@ const getProfesores = async (req, res) => {
  
 const getEstudiantes = async (req, res) => {
   try {
-    const students = await ModeloUsuario.find({ rol: 'Estudiante' });
+    const students = await ModeloUsuario.find({ UsuarioRol: 'Estudiante' });
 
     if (students.length === 0) {
       return res.status(200).json({ message: "No hay registros almacenados." });
@@ -205,6 +196,4 @@ const getEstudiantes = async (req, res) => {
   }
 };
 
-
-
-export { registrar, iniciarSesion, cerrarSesion ,revisarUsuario, getProfesores,getEstudiantes};
+export { registrar, iniciarSesion, cerrarSesion ,revisarUsuario, getProfesores,getEstudiantes };

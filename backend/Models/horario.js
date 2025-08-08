@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 
 const SchemaHorario = new mongoose.Schema({
     HorarioClaseCodigo: { type: String,required: true },  
-    ProfesorCodigo: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario", required: true },
-    dia: { type: String, enum: ['L', 'Mar', 'Mie', 'J', 'V'] , required: true },
-    periodo: { type: Number, required: true }, 
-    FechaCreacion: { type: Date, default: Date.now }
+    HorarioProfesorCodigo: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario", required: true },
+    HorarioDia: { type: String, enum: ['L', 'Mar', 'Mie', 'J', 'V'] , required: true },
+    HorarioPeriodo: { type: Number, required: true }, 
+    HorarioFechaCreacion: { type: Date, default: Date.now }
 });
 
 
