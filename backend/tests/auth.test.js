@@ -14,6 +14,44 @@ afterAll(async () => {
 })
 
 describe('Auth endpoints', () => {
+
+  // Test de registro e inicio de sesión de un Profesor
+  it('debería registrar e iniciar sesión como Profesor', async () => {
+    const profesor = {
+      nombre: 'ProfesorTest',
+      correo: 'profesor@example.com',
+      password: 'profesor123',
+      rol: 'Profesor',
+      departamento: 'Matemáticas'
+    }
+
+    // Registrar
+    const resRegistro = await request(app)
+      .post('/api/auth/registrar')
+      .send(profesor)
+
+    expect(resRegistro.statusCode).toBe(200)
+    expect(resRegistro.body).toHaveProperty('Usuario')
+    expect(resRegistro.body.UsuarioNombre || resRegistro.body.Usuario?.UsuarioNombre).toBeDefined()
+
+    // Iniciar sesión
+    const resLogin = await request(app)
+      .post('/api/auth/iniciarsesion')
+      .send({ correo: profesor.correo, password: profesor.password })
+
+    expect(resLogin.statusCode).toBe(200)
+    expect(resLogin.body).toHaveProperty('token')
+    expect(resLogin.body.Usuario.UsuarioRol).toBe('Profesor')
+
+    // Cerrar sesión
+    const resLogout = await request(app)
+      .post('/api/auth/cerrarsesion')
+      .set('Cookie', [`token=${resLogin.body.token}`])
+    expect(resLogout.statusCode).toBe(200)
+    expect(resLogout.body).toHaveProperty('success', true)
+
+  })
+
   let testUser = {
     nombre: 'TestUser',
     correo: 'testuser@example.com',
@@ -77,6 +115,39 @@ describe('Auth endpoints', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body).toHaveProperty('success', true)
   })
+
+
+
+
+  // Test de registro e inicio de sesión de un Admin
+  it('debería registrar e iniciar sesión como Admin', async () => {
+    const admin = {
+      nombre: 'AdminTest',
+      correo: 'admin@example.com',
+      password: 'admin123',
+      rol: 'Admin',
+      departamento: 'Sistemas'
+    }
+
+    // Registrar
+    const resRegistro = await request(app)
+      .post('/api/auth/registrar')
+      .send(admin)
+
+    expect(resRegistro.statusCode).toBe(200)
+    expect(resRegistro.body).toHaveProperty('Usuario')
+    expect(resRegistro.body.UsuarioNombre || resRegistro.body.Usuario?.UsuarioNombre).toBeDefined()
+
+    // Iniciar sesión
+    const resLogin = await request(app)
+      .post('/api/auth/iniciarsesion')
+      .send({ correo: admin.correo, password: admin.password })
+
+    expect(resLogin.statusCode).toBe(200)
+    expect(resLogin.body).toHaveProperty('token')
+    expect(resLogin.body.Usuario.UsuarioRol).toBe('Admin')
+  })
+
 })
 
 
