@@ -1,7 +1,5 @@
 import express from'express'
-import { registrar, revisarUsuario, getProfesores,getEstudiantes} from '../Controllers/AuthController.js'
-import { iniciarSesion } from '../Controllers/AuthController.js'
-import { cerrarSesion } from '../Controllers/AuthController.js'
+import { registrar, revisarUsuario, getProfesores,getEstudiantes,iniciarSesion,cerrarSesion} from '../Controllers/AuthController.js'
 import { esUsuario } from '../Middleware/VerifyToken.js'
  
 const AutenticacionRutas = express.Router()
